@@ -1,6 +1,5 @@
 from typing import List, Optional, Union
 
-from torch.autograd import Variable
 import torch
 import torch.nn as nn
 
@@ -63,7 +62,8 @@ class CRF(nn.Module):
         return f'{self.__class__.__name__}(num_tags={self.num_tags})'
 
     def forward(self,
-                emissions: Variable,
+                emissions: 
+                ,
                 tags: Variable,
                 mask: Optional[Variable] = None,
                 reduce: bool = True,
@@ -111,7 +111,7 @@ class CRF(nn.Module):
                 raise ValueError('mask of the first timestep must all be on')
 
         if mask is None:
-            mask = Variable(self._new(tags.size()).fill_(1)).byte()
+            mask = self._new(tags.size()).fill_(1)).byte()
 
         numerator = self._compute_joint_llh(emissions, tags, mask)
         denominator = self._compute_log_partition_function(emissions, mask)
@@ -148,12 +148,9 @@ class CRF(nn.Module):
                 f'got {tuple(emissions.size()[:2])} and {tuple(mask.size())}'
             )
 
-        if isinstance(emissions, Variable):
-            emissions = emissions.data
+        
         if mask is None:
             mask = self._new(emissions.size()[:2]).fill_(1).byte()
-        elif isinstance(mask, Variable):
-            mask = mask.data
 
         return self._viterbi_decode(emissions, mask)
 
