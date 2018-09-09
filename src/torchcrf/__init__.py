@@ -54,20 +54,19 @@ class CRF(nn.Module):
         The parameters will be initialized randomly from a uniform distribution
         between -0.1 and 0.1.
         """
-        nn.init.uniform(self.start_transitions, -0.1, 0.1)
-        nn.init.uniform(self.end_transitions, -0.1, 0.1)
-        nn.init.uniform(self.transitions, -0.1, 0.1)
+        nn.init.uniform_(self.start_transitions, -0.1, 0.1)
+        nn.init.uniform_(self.end_transitions, -0.1, 0.1)
+        nn.init.uniform_(self.transitions, -0.1, 0.1)
 
     def __repr__(self) -> str:
         return f'{self.__class__.__name__}(num_tags={self.num_tags})'
 
     def forward(self,
-                emissions: 
-                ,
-                tags: Variable,
-                mask: Optional[Variable] = None,
+                emissions,
+                tags,
+                mask = None,
                 reduce: bool = True,
-                ) -> Variable:
+                ): 
         """Compute the log likelihood of the given sequence of tags and emission score.
 
         Arguments
@@ -111,7 +110,7 @@ class CRF(nn.Module):
                 raise ValueError('mask of the first timestep must all be on')
 
         if mask is None:
-            mask = self._new(tags.size()).fill_(1)).byte()
+            mask = self._new(tags.size()).fill_(1).byte()
 
         numerator = self._compute_joint_llh(emissions, tags, mask)
         denominator = self._compute_log_partition_function(emissions, mask)
@@ -119,8 +118,8 @@ class CRF(nn.Module):
         return llh if not reduce else torch.sum(llh)
 
     def decode(self,
-               emissions: Union[Variable, torch.FloatTensor],
-               mask: Optional[Union[Variable, torch.ByteTensor]] = None) -> List[List[int]]:
+               emissions, 
+               mask  = None):
         """Find the most likely tag sequence using Viterbi algorithm.
 
         Arguments
@@ -155,9 +154,9 @@ class CRF(nn.Module):
         return self._viterbi_decode(emissions, mask)
 
     def _compute_joint_llh(self,
-                           emissions: Variable,
-                           tags: Variable,
-                           mask: Variable) -> Variable:
+                           emissions,
+                           tags,
+                           mask):
         # emissions: (seq_length, batch_size, num_tags)
         # tags: (seq_length, batch_size)
         # mask: (seq_length, batch_size)
@@ -194,8 +193,8 @@ class CRF(nn.Module):
         return llh
 
     def _compute_log_partition_function(self,
-                                        emissions: Variable,
-                                        mask: Variable) -> Variable:
+                                        emissions,
+                                        mask):
         # emissions: (seq_length, batch_size, num_tags)
         # mask: (seq_length, batch_size)
         assert emissions.dim() == 3 and mask.dim() == 2
@@ -293,7 +292,7 @@ class CRF(nn.Module):
         return best_tags_list
 
     @staticmethod
-    def _log_sum_exp(tensor: Variable, dim: int) -> Variable:
+    def _log_sum_exp(tensor, dim):
         # Find the max value along `dim`
         offset, _ = tensor.max(dim)
         # Make offset broadcastable
@@ -303,6 +302,6 @@ class CRF(nn.Module):
         # Add offset back
         return offset + safe_log_sum_exp
 
-    def _new(self, *args, **kwargs) -> torch.FloatTensor:
+    def _new(self, *args, **kwargs):
         param = next(self.parameters())
         return param.data.new(*args, **kwargs)
